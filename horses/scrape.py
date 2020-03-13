@@ -11,7 +11,7 @@ import time
 
 BASE_URL = "https://www.tjk.org/TR/YarisSever/Query/DataRows/AtIstatistikleri?" \
     "PageNumber={}&Sort=AtAdi+ASC&X-Requested-With=XMLHttpRequest"
-ERROR_RE = re.compile(".*sayfa bulunamadı.*", re.I)
+ERROR_RE = re.compile(".*hata/tjkLogo.*", re.I)
 
 
 s = requests.session()
@@ -30,7 +30,7 @@ while True:
     sys.stdout.write("  Downloading page {}... ".format(page))
     sys.stdout.flush()
 
-    data = requests.get(BASE_URL.format(page)).text
+    data = s.get(BASE_URL.format(page)).text
     if ERROR_RE.match(data):
         print("\n  Stopping at page {} due to error!".format(page))
         break
