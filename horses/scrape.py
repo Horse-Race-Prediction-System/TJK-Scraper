@@ -40,7 +40,7 @@ while True:
 
     sys.stdout.write("\033[1;32m✓\033[0m\n")
 
-    secs = random.randint(5, 10)
+    secs = 0
     while secs:
         sys.stdout.write("\r  Downloaded! Sleeping {} seconds to prevent "
                          " overload on TJK servers.".format(secs))

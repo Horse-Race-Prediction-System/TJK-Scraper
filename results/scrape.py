@@ -9,6 +9,7 @@ import re
 import requests
 import sys
 import time
+import urllib.parse
 
 
 BASE_URL = "https://www.tjk.org/TR/YarisSever/Info/Data/GunlukYarisSonuclari?" \
@@ -62,19 +63,24 @@ while True:
     cities = []
     for city in soup.find_all("a"):
         link = "https://tjk.org" + city["href"]
-        city_data = s.get(link).text
+        city_page = BeautifulSoup(s.get(link).text, 'html.parser')
         city_id = city["data-sehir-id"]
 
+        csv_link = urllib.parse.urljoin(
+            link,
+            city_page.find("a", {"id": "CSVBulten"})["href"]
+        )
+
         with open(os.path.join(
-                        target, "{}.html".format(city_id)
-        ), "w") as f:
-            f.write(city_data)
+                        target, "{}.csv".format(city_id)
+        ), "wb") as f:
+            f.write(s.get(csv_link).content)
 
     # We're done
     sys.stdout.write("\033[1;32m✓\033[0m\n")
 
     # Wait a random amount of seconds to prevent server load
-    secs = random.randint(5, 10)
+    secs = 0
     while secs:
         sys.stdout.write("\r  Downloaded! Sleeping {} seconds to prevent "
                          " overload on TJK servers.".format(secs))

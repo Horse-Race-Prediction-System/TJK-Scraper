@@ -15,22 +15,22 @@ except ValueError:
 races = [
     # First row for column names
     [
-        "RaceID",
         "RaceCity",
+        "RaceDate",
+        "RaceNumber",
+        "Placement",
         "HorseName",
         "Age",
-        "Origin",
+        "Mother",
+        "Father",
         "Weight",
         "Jokey",
         "Owner",
         "Coach",
-        "Degree",
-        "GNY",
-        "AGF",
         "StartPos",
-        "Difference",
-        "LateExit",
-        "HandicapPoints"
+        "Degree",
+        "Gny",
+        "Difference"
     ]
 ]
 
@@ -40,46 +40,39 @@ for fname in sorted(pathlib.Path(source).glob("*")):
     print("  Parsing", fname)
 
     # Parse all races
-    for fn in fname.glob("*.html"):
-        soup = BeautifulSoup(fn.read_text(), 'html.parser')
-        for race in soup.find("div", attrs={"class": "races-panes"}).children:
-            if isinstance(race, NavigableString):
-                continue
+    for fn in fname.glob("*.csv"):
+        rd = csv.reader(open(str(fn.resolve())), delimiter=";")
+        city, _, date = next(rd)
+        while True:
+            try:
+                race_header = next(rd)
+            except StopIteration:
+                break
 
-            race_id = race["id"]
-            race_city = race["sehir"]
-
-            for row in race.find_all("tr"):
-                # Skip header rows
-                if not "class" in row.attrs:
-                    continue
-
-                # Collect fields
-                fields = []
-                for i, field in enumerate(row.children):
-                    if isinstance(field, NavigableString):
-                        fields.append(field)
-                    else:
-                        fields.append(field.get_text().strip())
-
-                # Delete the order field, which is inconsistent
-                fields = list(filter(str.strip, fields))
+            race_number = race_header[0].split(".")[0]
+            # Skip 3 rows
+            next(rd); next(rd); next(rd)
+            while True:
+                horse = next(rd)
+                # Need to check if the number can be coerced, if not
+                # the horse placements are over.
                 try:
-                    int(fields[0])
+                    int(horse[0])
                 except ValueError:
-                    fields = [
-                        race_id, race_city,
-                    ] + fields
-                else:
-                    fields = [
-                        race_id, race_city,
-                    ] + fields[1:]
+                    break
 
-                # Clean up the origin field
-                fields[4] = re.sub("\s+", " ", re.sub("\n", "", fields[4]))
+                races.append([
+                    city, date, race_number,
+                    *horse[:10],
+                    *horse[12:15]
+                ])
 
-                # Clean empty fields and insert
-                races.append(fields)
+            # Skip next line, if it doesn't exist we're done
+            try:
+                next(rd)
+            except StopIteration:
+                break
+
 
 print("Writing results to", target + "!")
 with open(target, "w", newline="") as f:
