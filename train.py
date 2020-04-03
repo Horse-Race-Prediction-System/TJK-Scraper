@@ -23,7 +23,7 @@ def create_sets(filename: str) -> tuple:
         data = np.array(
             [float(_ if len(str(_)) > 0 else 0) for _ in row[4:]]
         )
-        X.append(data.reshape(1, -1))
+        X.append(data)
 
     return X, y
 
@@ -37,6 +37,8 @@ def train(filename: str, model: str):
 
     # Pickle the model so we can save and reuse it
     s = pickle.dumps(clf)
+
+    print("Training complete!")
 
     # Save the model to a file
     f = open(model, 'wb')
