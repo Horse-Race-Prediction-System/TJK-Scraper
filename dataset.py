@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+import datetime
 import csv
 import re
 import sqlite3
 import sys
+
+
+def update_age(age: str, race_date: str) -> int:
+    match = re.match(r"\d+", age)
+    if match is None:
+        raise ValueError("Age doesn't start with number.")
+    else:
+        age_int = int(match.group(0))
+        race_year = int(race_date.split("/")[2])
+        this_year = datetime.date.today().year
+
+        return age_int + (this_year - race_year)
 
 
 def like_first_word(s: str) -> str:
@@ -103,7 +116,7 @@ for horse in result_rd:
         "SELECT * FROM horses WHERE name LIKE ? AND age LIKE ?",
         [
             like_first_word(horse["HorseName"]),
-            like_first_word(horse["Age"])
+            like_first_word(str(update_age(horse["Age"], horse["RaceDate"])))
         ]
     )
     row = cursor.fetchone()
