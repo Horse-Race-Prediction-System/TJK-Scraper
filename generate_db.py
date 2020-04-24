@@ -3,6 +3,9 @@
 import csv
 import sqlite3
 import sys
+import re
+
+NUMBER_PREFIX = re.compile("\d+")
 
 try:
     horses_csv, target_db = sys.argv[1:]
@@ -12,6 +15,7 @@ except ValueError:
 
 conn = sqlite3.connect(target_db)
 cursor = conn.cursor()
+cursor.execute("DROP TABLE IF EXISTS horses")
 cursor.execute("""
 CREATE TABLE horses (
     name VARCHAR(75) NOT NULL,
@@ -36,11 +40,17 @@ CREATE TABLE horses (
 hrd = csv.reader(open(horses_csv), delimiter=",")
 next(hrd)  # skip header
 for line in hrd:
+    if NUMBER_PREFIX.match(line[1]) is None:
+        print("WARNING: Skipping horse", line[0], "because the age value is invalid.")
+        continue
+
     try:
-        # Compensate for empty earnings
+        # Compensate for empty values
+        if len(line) < 16:
+            line += [0] * (16 - len(line))
         cursor.execute(
             "INSERT INTO horses VALUES (" + ("?, " * 15) + "?)",
-            line[:15] + [line[15] if len(line) > 15 else None]
+            line
         )
     except sqlite3.IntegrityError:
         print("WARNING: Skipping horse", line[0], "because it already exists.")
