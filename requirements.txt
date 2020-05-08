@@ -1,3 +1,9 @@
 # -*- coding: utf-8 -*-
+
+# Scraping and formatting
 beautifulsoup4 ~= 4.8.2
 requests ~= 2.21.0
+
+# Model training
+scikit-learn ~= 0.22.2.post1
+numpy ~= 1.18.4

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""This script takes a trained model and validates it."""
 
 import numpy as np
 import csv
@@ -9,13 +10,16 @@ import typing
 
 
 def read_model(model_file: typing.IO) -> SVR:
+    """Read the model from the given file."""
     return pickle.loads(model_file.read())
 
 
 def create_prediction_data(validation_file: typing.IO) -> dict:
+    """Create a dictionary object suitable for prediction."""
     validation_data = csv.DictReader(validation_file)
 
     races = {}
+    # Read each horse from each race
     for row in validation_data:
         race_id = row["EntryID"]
         finish_pos = float(row["Placement"])
@@ -28,21 +32,22 @@ def create_prediction_data(validation_file: typing.IO) -> dict:
             continue
 
         # Create validation array
-        data = np.array([
-            float(feat if len(str(feat)) > 0 else 0)
-            for feat in list(row.values())[4:]
-        ])
+        data = np.array(
+            [
+                float(feat if len(str(feat)) > 0 else 0)
+                for feat in list(row.values())[4:]
+            ]
+        )
         data = data.reshape(1, -1)
-        races[race_id].append({
-            "data": data,
-            "prediction": None,
-            "finish_pos": finish_pos
-        })
+        races[race_id].append(
+            {"data": data, "prediction": None, "finish_pos": finish_pos}
+        )
 
     return races
 
 
 def predict(prediction_data: dict, model: SVR):
+    """Do the actual prediction validation."""
     race_count = 0
     correct_win = 0
     correct_first_three = 0
@@ -73,6 +78,7 @@ def predict(prediction_data: dict, model: SVR):
 
 
 if __name__ == "__main__":
+    # Read the required arguments
     try:
         model_file, prediction_csv = sys.argv[1:]
     except ValueError:
